@@ -12,10 +12,13 @@ set "SERVER_NAME=My Server"
 set "WORLD_NAME=Midgard"
 set "SERVER_PASS=changeme123"
 set "SERVER_PUBLIC=true"
+set "SERVER_PORT=2456"
 set "CONTAINER_NAME=valheim-server"
 set "IMAGE=ghcr.io/community-valheim-tools/valheim-server"
 REM Avoid !, ^, %%, and " characters in SERVER_PASS - batch parses these specially.
 REM ------------------------------------
+
+set /a QUERY_PORT=SERVER_PORT+1
 
 set "BASE_DIR=%USERPROFILE%\valheim-server"
 set "CONFIG_DIR=%BASE_DIR%\config"
@@ -84,11 +87,12 @@ docker run -d ^
     --cap-add=sys_nice ^
     --stop-timeout 120 ^
     --restart unless-stopped ^
-    -p 2456-2457:2456-2457/udp ^
+    -p %SERVER_PORT%-%QUERY_PORT%:%SERVER_PORT%-%QUERY_PORT%/udp ^
     -v "%CONFIG_DIR%:/config" ^
     -v "%DATA_DIR%:/opt/valheim" ^
     -v "%BACKUPS_DIR%:/backups" ^
     -e SERVER_NAME="%SERVER_NAME%" ^
+    -e SERVER_PORT=%SERVER_PORT% ^
     -e WORLD_NAME="%WORLD_NAME%" ^
     -e SERVER_PASS="%SERVER_PASS%" ^
     -e SERVER_PUBLIC="%SERVER_PUBLIC%" ^
@@ -105,6 +109,25 @@ echo.
 echo Server container started. First boot downloads ~1GB from Steam,
 echo so it may take a few minutes before the server is joinable.
 echo.
+
+REM --- Detect public IPv4 address (informational only - this is the machine's ---
+REM     public address, so the UDP ports below must still be forwarded on your ---
+REM     router for friends outside your LAN to connect with it) ---
+echo Detecting public IPv4 address...
+set "PUBLIC_IP="
+where curl >nul 2>&1
+if not errorlevel 1 (
+    for /f "usebackq delims=" %%A in (`curl -s -4 --max-time 5 https://api.ipify.org`) do set "PUBLIC_IP=%%A"
+)
+if defined PUBLIC_IP (
+    echo Users can connect to server via: %PUBLIC_IP%:%SERVER_PORT%
+) else (
+    echo [WARN] Could not determine public IPv4 address - check manually if needed.
+)
+echo [REMINDER] Forward UDP ports %SERVER_PORT%-%QUERY_PORT% to this machine on your
+echo            router, or players outside your network will not be able to connect.
+echo.
+
 echo View logs with:   docker logs -f %CONTAINER_NAME%
 echo Stop the server:  docker stop %CONTAINER_NAME%
 echo Remove entirely:  docker rm -f %CONTAINER_NAME%
