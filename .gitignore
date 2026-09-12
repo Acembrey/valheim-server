@@ -2,3 +2,5 @@
 !/config/.gitkeep
 /data/*
 !/data/.gitkeep
+/backups/*
+!/backups/.gitkeep

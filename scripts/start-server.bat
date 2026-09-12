@@ -20,6 +20,7 @@ REM ------------------------------------
 set "BASE_DIR=%USERPROFILE%\valheim-server"
 set "CONFIG_DIR=%BASE_DIR%\config"
 set "DATA_DIR=%BASE_DIR%\data"
+set "BACKUPS_DIR=%BASE_DIR%\backups"
 
 echo.
 echo === Valheim Dedicated Server Launcher ===
@@ -55,8 +56,10 @@ if !PASS_LEN! LSS 5 (
 REM --- Create persistent directories ---
 if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
-echo Config directory: %CONFIG_DIR%
-echo Data directory:   %DATA_DIR%
+if not exist "%BACKUPS_DIR%" mkdir "%BACKUPS_DIR%"
+echo Config directory:  %CONFIG_DIR%
+echo Data directory:    %DATA_DIR%
+echo Backups directory: %BACKUPS_DIR%
 echo.
 
 REM --- Remove any previous container with the same name ---
@@ -84,10 +87,12 @@ docker run -d ^
     -p 2456-2457:2456-2457/udp ^
     -v "%CONFIG_DIR%:/config" ^
     -v "%DATA_DIR%:/opt/valheim" ^
+    -v "%BACKUPS_DIR%:/backups" ^
     -e SERVER_NAME="%SERVER_NAME%" ^
     -e WORLD_NAME="%WORLD_NAME%" ^
     -e SERVER_PASS="%SERVER_PASS%" ^
     -e SERVER_PUBLIC="%SERVER_PUBLIC%" ^
+    -e BACKUPS_DIRECTORY=/backups ^
     %IMAGE%
 
 if errorlevel 1 (

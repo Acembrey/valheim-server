@@ -9,6 +9,7 @@ services:
     volumes:
       - ../config:/config
       - ../data:/opt/valheim
+      - ../backups:/backups
     environment:
       - SERVER_NAME=UnderwaterSquad
       - WORLD_NAME=Midgard
