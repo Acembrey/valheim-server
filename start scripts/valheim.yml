@@ -1,0 +1,17 @@
+services:
+  valheim:
+    image: ghcr.io/community-valheim-tools/valheim-server
+    cap_add:
+      - sys_nice
+    stop_grace_period: 2m
+    ports:
+      - "2456-2457:2456-2457/udp"
+    volumes:
+      - ../config:/config
+      - ../data:/opt/valheim
+    environment:
+      - SERVER_NAME=UnderwaterSquad
+      - WORLD_NAME=Midgard
+      - SERVER_PASS=
+      - SERVER_PUBLIC=false
+    restart: unless-stopped
